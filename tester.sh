@@ -88,76 +88,76 @@ test $TEST_ID "3 1 2" 2
 printf $BOLD 
 printf "Test with four elements$RESET_COLOR\n"
 TEST_ID=1
-test $TEST_ID "1 2 3 4" 6
+test $TEST_ID "1 2 3 4" 0
 ((TEST_ID++))
 
-test $TEST_ID "1 2 4 3" 6
+test $TEST_ID "1 2 4 3" 4
 ((TEST_ID++))
 
-test $TEST_ID "1 3 2 4" 6
+test $TEST_ID "1 3 2 4" 3
 ((TEST_ID++))
 
-test $TEST_ID "1 3 4 2" 6
+test $TEST_ID "1 3 4 2" 2
 ((TEST_ID++))
 
-test $TEST_ID "1 4 2 3" 6
+test $TEST_ID "1 4 2 3" 3
 ((TEST_ID++))
 
-test $TEST_ID "1 4 3 2" 6
+test $TEST_ID "1 4 3 2" 4
 ((TEST_ID++))
 
-test $TEST_ID "2 1 3 4" 6
+test $TEST_ID "2 1 3 4" 1
 ((TEST_ID++))
 
-test $TEST_ID "2 1 4 3" 6
+test $TEST_ID "2 1 4 3" 5
 ((TEST_ID++))
 
-test $TEST_ID "2 3 1 4" 6
+test $TEST_ID "2 3 1 4" 4
 ((TEST_ID++))
 
-test $TEST_ID "2 3 4 1" 6
+test $TEST_ID "2 3 4 1" 1
 ((TEST_ID++))
 
-test $TEST_ID "2 4 1 3" 6
+test $TEST_ID "2 4 1 3" 3
 ((TEST_ID++))
 
-test $TEST_ID "2 4 3 1" 6
+test $TEST_ID "2 4 3 1" 4
 ((TEST_ID++))
 
-test $TEST_ID "3 1 2 4" 6
+test $TEST_ID "3 1 2 4" 4
 ((TEST_ID++))
 
-test $TEST_ID "3 1 4 2" 6
+test $TEST_ID "3 1 4 2" 3
 ((TEST_ID++))
 
-test $TEST_ID "3 2 1 4" 6
+test $TEST_ID "3 2 1 4" 5
 ((TEST_ID++))
 
-test $TEST_ID "3 2 4 1" 6
+test $TEST_ID "3 2 4 1" 2
 ((TEST_ID++))
 
-test $TEST_ID "3 4 1 2" 6
+test $TEST_ID "3 4 1 2" 2
 ((TEST_ID++))
 
-test $TEST_ID "3 4 2 1" 6
+test $TEST_ID "3 4 2 1" 3
 ((TEST_ID++))
 
-test $TEST_ID "4 1 2 3" 6
+test $TEST_ID "4 1 2 3" 1
 ((TEST_ID++))
 
-test $TEST_ID "4 1 3 2" 6
+test $TEST_ID "4 1 3 2" 5
 ((TEST_ID++))
 
-test $TEST_ID "4 2 1 3" 6
+test $TEST_ID "4 2 1 3" 2
 ((TEST_ID++))
 
-test $TEST_ID "4 2 3 1" 6
+test $TEST_ID "4 2 3 1" 4
 ((TEST_ID++))
 
-test $TEST_ID "4 3 1 2" 6
+test $TEST_ID "4 3 1 2" 3
 ((TEST_ID++))
 
-test $TEST_ID "4 3 2 1" 6
+test $TEST_ID "4 3 2 1" 4
 ((TEST_ID++))
 
 if ((SUCCESS_COUNT<MAX_SUCCESS_COUNT)); then
@@ -165,48 +165,3 @@ if ((SUCCESS_COUNT<MAX_SUCCESS_COUNT)); then
 else
 	printf "$GREEN_COLOR$SUCCESS_COUNT/$MAX_SUCCESS_COUNT$RESET_COLOR tests succedded\n"
 fi
-
-# comment résoudre ?
-# 4 3 2 1
-# on switch le 4 et le 3 (donc sa)
-# 3 4 2 1
-# on avance de deux (2x ra)
-# 2 1 3 4
-# on switch le 2 et le 1 (donc sa)
-# Total: 4 ops
-
-# Fonction is_descending_order
-# Si c'est dans l'ordre decroissant:
-# A chaque ops, on fait size--;
-# Tant que size >= 0
-# sa
-# 2x ra
-# sa
-
-# comment résoudre ?
-# 6 5 4 3 2 1
-# rra: 1 6 5 4 3 2
-# pb: a: 6 5 4 3 2, b: 1
-# rra: 2 6 5 4 3, b: 1
-# pb: a: 6 5 4 3, b: 1 2
-# sa: a: 5 6 4 3, b: 1 2
-# 2x ra: 4 3 5 6, b: 1 2
-# sa: 3 4 5 6, b: 1 2
-# 2x pa: 1 2 3 4 5 6
-
-# comment résoudre ?
-# 8 7 6 5 4 3 2 1
-# rra:	1 8 7 6 5 4 3 2
-# pb:	8 7 6 5 4 3 2		b: 1
-# rra:	2 8 7 6 5 4 3		b: 1
-# pb:	8 7 6 5 4 3			b: 1 2
-# rra:	3 8 7 6 5 4			b: 1 2
-# pb:	8 7 6 5 4			b: 1 2 3
-# rra:	4 8 7 6 5			b: 1 2 3
-# pb:	8 7 6 5				b: 1 2 3 4
-# sa:	7 8 6 5				b: 1 2 3 4
-# ra:	8 6 5 7				b: 1 2 3 4
-# ra:	6 5 7 8				b: 1 2 3 4
-# sa:	5 6 7 8				b: 1 2 3 4
-# 4 pa:	1 2 3 4 5 6 7 8
-# Complexité: O(2n)
