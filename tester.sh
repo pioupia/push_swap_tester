@@ -12,21 +12,21 @@ MAX_SUCCESS_COUNT=0
 
 function test()
 {
-	RES=$(./push_swap $2 | wc -l)
-	if [[ $RES > $3 ]]; then
-		printf "($1) Ops: test$RED_COLOR failed$RESET_COLOR\nReceived: $RED_COLOR$RES$RESET_COLOR\nRequired: $GREEN_COLOR$3$RESET_COLOR\n"
-	else
-		printf "($1) Ops: test$GREEN_COLOR succeed$RESET_COLOR\n"
-		((SUCCESS_COUNT++))
-	fi
-	((MAX_SUCCESS_COUNT++))
-
 	RES=$(./push_swap $2 | ./checker $2)
 	if [[ $RES != "OK" ]]; then
 	printf "($1) Result: test$RED_COLOR failed$RESET_COLOR\n\n"
 	else
-		printf "($1) Result: test$GREEN_COLOR succeed$RESET_COLOR\n\n"
+		printf "($1) Result: test$GREEN_COLOR succeed$RESET_COLOR\n"
 		((SUCCESS_COUNT++))
+
+		RES=$(./push_swap $2 | wc -l)
+		if (( RES > $3 )); then
+			printf "($1) Ops: test$RED_COLOR failed$RESET_COLOR\nReceived: $RED_COLOR$RES$RESET_COLOR\nRequired: $GREEN_COLOR$3$RESET_COLOR\nTest: ./push_swap $2\n\n"
+		else
+			printf "($1) Ops: test$GREEN_COLOR succeed$RESET_COLOR\n\n"
+			((SUCCESS_COUNT++))
+		fi
+		((MAX_SUCCESS_COUNT++))
 	fi
 	((MAX_SUCCESS_COUNT++))
 }
