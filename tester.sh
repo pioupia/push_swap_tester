@@ -7,8 +7,21 @@ GREEN_COLOR="\e[32m"
 RED_COLOR="\e[31m"
 RESET_COLOR="\e[0m"
 
+# To be shure our push_swap is working
+CHECK_COUNT=0
+MAX_CHECK_COUNT=0
+
+# The number of normal tests
+NORMAL_COUNT=0
+NORMAL_CHECK_COUNT=0
+
+# The number of 125% tests
 SUCCESS_COUNT=0
 MAX_SUCCESS_COUNT=0
+
+# The number of strict count
+STRICT_COUNT=0
+MAX_STRICT_COUNT=0
 
 # How does the tester_data file is formed?
 # You'll have the test entry's
@@ -19,28 +32,55 @@ MAX_SUCCESS_COUNT=0
 
 function test()
 {
+	IFS=" " read -ra argv <<< "$2"
+	argc=${#argv[@]}
+
 	RES=$(./push_swap $2 | ./checker $2)
 	if [[ $RES != "OK" ]]; then
-	printf "($1) Result: test$RED_COLOR failed$RESET_COLOR\n\n"
+		printf "($1) Result: test$RED_COLOR failed$RESET_COLOR\n\n"
 	else
 		printf "($1) Result: test$GREEN_COLOR succeed$RESET_COLOR\n"
-		((SUCCESS_COUNT++))
+		((CHECK_COUNT++))
 
 		RES=$(./push_swap $2 | wc -l)
-		if (( RES > $3 )); then
+
+		if (( argc <= 3 )) && (( RES <= 3 )); then
+			((NORMAL_COUNT++))
+			((SUCCESS_COUNT++))
+		fi
+		if (( argc > 3 )) && (( argc <= 5 )) && (( RES <= 12 )); then
+			((NORMAL_COUNT++))
+			((SUCCESS_COUNT++))
+		fi
+		if (( argc > 5 )) && (( argc <= 100 )) && (( RES <= 700 )); then
+			((SUCCESS_COUNT++))
+		fi
+		if (( argc > 5 )) && (( argc <= 100 )) && (( RES <= 1300 )); then
+			((NORMAL_COUNT++))
+		fi
+		if (( argc > 100 )) && (( argc <= 500 )) && (( RES <= 5500 )); then
+			((SUCCESS_COUNT++))
+		fi
+		if (( argc > 100 )) && (( argc <= 500 )) && (( RES <= 10000 )); then
+			((NORMAL_COUNT++))
+		fi
+		((MAX_SUCCESS_COUNT++))
+		((NORMAL_CHECK_COUNT++))
+
+		if (( $3 >= 0 )) && (( RES > $3 )); then
+			((MAX_STRICT_COUNT++))
 			printf "($1) Ops: test$RED_COLOR failed$RESET_COLOR\nReceived: $RED_COLOR$RES$RESET_COLOR\nRequired: $GREEN_COLOR$3$RESET_COLOR\nTest: ./push_swap $2\n\n"
 		else
 			printf "($1) Ops: test$GREEN_COLOR succeed$RESET_COLOR\n\n"
-			((SUCCESS_COUNT++))
+			((STRICT_COUNT++))
+			((MAX_STRICT_COUNT++))
 		fi
-		((MAX_SUCCESS_COUNT++))
 	fi
-	((MAX_SUCCESS_COUNT++))
+	((MAX_CHECK_COUNT++))
 }
 
 
 echo "Test with empty list"
-# TODO: Needs to be patch, just read a stream 
 RES=$(./push_swap > /dev/null 2>__errors.txt)
 while IFS= read -r line
 	do
@@ -48,9 +88,9 @@ while IFS= read -r line
 		printf "(1): test$RED_COLOR failed$RESET_COLOR\n\n"
 	else
 		printf "(1): test$GREEN_COLOR succeed$RESET_COLOR\n\n"
-		((SUCCESS_COUNT++))
+		((CHECK_COUNT++))
 	fi
-	((MAX_SUCCESS_COUNT++))
+	((MAX_CHECK_COUNT++))
 done < __errors.txt
 
 rm __errors.txt
@@ -72,105 +112,26 @@ while read line; do
 	((TEST_ID++))
 done < tester_data
 
-if ((SUCCESS_COUNT<MAX_SUCCESS_COUNT)); then
-	printf "$RED_COLOR$SUCCESS_COUNT/$MAX_SUCCESS_COUNT$RESET_COLOR tests succedded\n"
+if ((CHECK_COUNT<MAX_CHECK_COUNT)); then
+	printf "[VAL]\t$RED_COLOR$CHECK_COUNT/$MAX_CHECK_COUNT$RESET_COLOR tests succedded\n"
 else
-	printf "$GREEN_COLOR$SUCCESS_COUNT/$MAX_SUCCESS_COUNT$RESET_COLOR tests succedded\n"
+	printf "[VAL]\t$GREEN_COLOR$CHECK_COUNT/$MAX_CHECK_COUNT$RESET_COLOR tests succedded\n"
 fi
 
-# printf $BOLD 
-# printf "Test with three elements$RESET_COLOR\n"
-# TEST_ID=1
-# test $TEST_ID "1 2 3" 0
-# ((TEST_ID++))
-# test $TEST_ID "1 3 2" 2
-# ((TEST_ID++))
-# test $TEST_ID "2 1 3" 1
-# ((TEST_ID++))
-# test $TEST_ID "2 3 1" 1
-# ((TEST_ID++))
-# test $TEST_ID "3 2 1" 2
-# ((TEST_ID++))
-# test $TEST_ID "3 1 2" 2
-# ((TEST_ID++))
+if ((STRICT_COUNT<MAX_STRICT_COUNT)); then
+	printf "[OPS]\t$RED_COLOR$STRICT_COUNT/$MAX_STRICT_COUNT$RESET_COLOR strict tests succedded\n"
+else
+	printf "[OPS]\t$GREEN_COLOR$STRICT_COUNT/$MAX_STRICT_COUNT$RESET_COLOR strict tests succedded\n"
+fi
 
-# printf $BOLD 
-# printf "Test with four elements$RESET_COLOR\n"
-# TEST_ID=1
-# test $TEST_ID "1 2 3 4" 0
-# ((TEST_ID++))
+if ((SUCCESS_COUNT<MAX_SUCCESS_COUNT)); then
+	printf "[OPS]\t$RED_COLOR$SUCCESS_COUNT/$MAX_SUCCESS_COUNT$RESET_COLOR for the 100%% tests succedded\n"
+else
+	printf "[OPS]\t$GREEN_COLOR$SUCCESS_COUNT/$MAX_SUCCESS_COUNT$RESET_COLOR for the 100%% tests succedded\n"
+fi
 
-# test $TEST_ID "1 2 4 3" 4
-# ((TEST_ID++))
-
-# test $TEST_ID "1 3 2 4" 3
-# ((TEST_ID++))
-
-# test $TEST_ID "1 3 4 2" 2
-# ((TEST_ID++))
-
-# test $TEST_ID "1 4 2 3" 3
-# ((TEST_ID++))
-
-# test $TEST_ID "1 4 3 2" 4
-# ((TEST_ID++))
-
-# test $TEST_ID "2 1 3 4" 1
-# ((TEST_ID++))
-
-# test $TEST_ID "2 1 4 3" 5
-# ((TEST_ID++))
-
-# test $TEST_ID "2 3 1 4" 4
-# ((TEST_ID++))
-
-# test $TEST_ID "2 3 4 1" 1
-# ((TEST_ID++))
-
-# test $TEST_ID "2 4 1 3" 3
-# ((TEST_ID++))
-
-# test $TEST_ID "2 4 3 1" 4
-# ((TEST_ID++))
-
-# test $TEST_ID "3 1 2 4" 4
-# ((TEST_ID++))
-
-# test $TEST_ID "3 1 4 2" 3
-# ((TEST_ID++))
-
-# test $TEST_ID "3 2 1 4" 5
-# ((TEST_ID++))
-
-# test $TEST_ID "3 2 4 1" 2
-# ((TEST_ID++))
-
-# test $TEST_ID "3 4 1 2" 2
-# ((TEST_ID++))
-
-# test $TEST_ID "3 4 2 1" 3
-# ((TEST_ID++))
-
-# test $TEST_ID "4 1 2 3" 1
-# ((TEST_ID++))
-
-# test $TEST_ID "4 1 3 2" 5
-# ((TEST_ID++))
-
-# test $TEST_ID "4 2 1 3" 2
-# ((TEST_ID++))
-
-# test $TEST_ID "4 2 3 1" 4
-# ((TEST_ID++))
-
-# test $TEST_ID "4 3 1 2" 3
-# ((TEST_ID++))
-
-# test $TEST_ID "4 3 2 1" 4
-# ((TEST_ID++))
-
-# if ((SUCCESS_COUNT<MAX_SUCCESS_COUNT)); then
-# 	printf "$RED_COLOR$SUCCESS_COUNT/$MAX_SUCCESS_COUNT$RESET_COLOR tests succedded\n"
-# else
-# 	printf "$GREEN_COLOR$SUCCESS_COUNT/$MAX_SUCCESS_COUNT$RESET_COLOR tests succedded\n"
-# fi
+if ((NORMAL_COUNT<NORMAL_CHECK_COUNT)); then
+	printf "[OPS]\t$RED_COLOR$NORMAL_COUNT/$NORMAL_CHECK_COUNT$RESET_COLOR normal tests succedded (2pts)\n"
+else
+	printf "[OPS]\t$GREEN_COLOR$NORMAL_COUNT/$NORMAL_CHECK_COUNT$RESET_COLOR normal tests succedded (2pts)\n"
+fi
