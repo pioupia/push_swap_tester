@@ -10,6 +10,13 @@ RESET_COLOR="\e[0m"
 SUCCESS_COUNT=0
 MAX_SUCCESS_COUNT=0
 
+# How does the tester_data file is formed?
+# You'll have the test entry's
+# Then you'll have the "strict" value
+# The "strict" values are the best move I succeed to do with my brain, or -1 for "no data"
+# The "passed" values are to do 100% at the project (hardcoded)
+# The "normal" values are just here to verify you do at least 2 points on this category (hardcoded)
+
 function test()
 {
 	RES=$(./push_swap $2 | ./checker $2)
@@ -34,134 +41,136 @@ function test()
 
 echo "Test with empty list"
 # TODO: Needs to be patch, just read a stream 
-RES=$(./push_swap)
-if [[ $RES != "Error" ]]; then
-	printf "(1): test$RED_COLOR failed$RESET_COLOR\n\n"
-else
-	printf "(1): test$GREEN_COLOR succeed$RESET_COLOR\n\n"
-	((SUCCESS_COUNT++))
-fi
+RES=$(./push_swap > /dev/null 2>__errors.txt)
+while IFS= read -r line
+	do
+	if [[ $line != "Error" ]]; then
+		printf "(1): test$RED_COLOR failed$RESET_COLOR\n\n"
+	else
+		printf "(1): test$GREEN_COLOR succeed$RESET_COLOR\n\n"
+		((SUCCESS_COUNT++))
+	fi
+	((MAX_SUCCESS_COUNT++))
+done < __errors.txt
 
-printf $BOLD 
-printf "Test with one element$RESET_COLOR\n"
+rm __errors.txt
+
+LAST_ARGC=0
 TEST_ID=1
-test $TEST_ID "1" 0
-((TEST_ID++))
-test $TEST_ID "2" 0
-((TEST_ID++))
-test $TEST_ID "0" 0
-((TEST_ID++))
-test $TEST_ID "-1" 0
-((TEST_ID++))
-test $TEST_ID "10000" 0
-((TEST_ID++))
-test $TEST_ID "-10000" 0
-
-printf $BOLD 
-printf "Test with two elements$RESET_COLOR\n"
-TEST_ID=1
-test $TEST_ID "1 3" 0
-((TEST_ID++))
-test $TEST_ID "3 1" 1
-((TEST_ID++))
-test $TEST_ID "-1 3" 0
-((TEST_ID++))
-test $TEST_ID "3 -1" 1
-((TEST_ID++))
-
-printf $BOLD 
-printf "Test with three elements$RESET_COLOR\n"
-TEST_ID=1
-test $TEST_ID "1 2 3" 0
-((TEST_ID++))
-test $TEST_ID "1 3 2" 2
-((TEST_ID++))
-test $TEST_ID "2 1 3" 1
-((TEST_ID++))
-test $TEST_ID "2 3 1" 1
-((TEST_ID++))
-test $TEST_ID "3 2 1" 2
-((TEST_ID++))
-test $TEST_ID "3 1 2" 2
-((TEST_ID++))
-
-printf $BOLD 
-printf "Test with four elements$RESET_COLOR\n"
-TEST_ID=1
-test $TEST_ID "1 2 3 4" 0
-((TEST_ID++))
-
-test $TEST_ID "1 2 4 3" 4
-((TEST_ID++))
-
-test $TEST_ID "1 3 2 4" 3
-((TEST_ID++))
-
-test $TEST_ID "1 3 4 2" 2
-((TEST_ID++))
-
-test $TEST_ID "1 4 2 3" 3
-((TEST_ID++))
-
-test $TEST_ID "1 4 3 2" 4
-((TEST_ID++))
-
-test $TEST_ID "2 1 3 4" 1
-((TEST_ID++))
-
-test $TEST_ID "2 1 4 3" 5
-((TEST_ID++))
-
-test $TEST_ID "2 3 1 4" 4
-((TEST_ID++))
-
-test $TEST_ID "2 3 4 1" 1
-((TEST_ID++))
-
-test $TEST_ID "2 4 1 3" 3
-((TEST_ID++))
-
-test $TEST_ID "2 4 3 1" 4
-((TEST_ID++))
-
-test $TEST_ID "3 1 2 4" 4
-((TEST_ID++))
-
-test $TEST_ID "3 1 4 2" 3
-((TEST_ID++))
-
-test $TEST_ID "3 2 1 4" 5
-((TEST_ID++))
-
-test $TEST_ID "3 2 4 1" 2
-((TEST_ID++))
-
-test $TEST_ID "3 4 1 2" 2
-((TEST_ID++))
-
-test $TEST_ID "3 4 2 1" 3
-((TEST_ID++))
-
-test $TEST_ID "4 1 2 3" 1
-((TEST_ID++))
-
-test $TEST_ID "4 1 3 2" 5
-((TEST_ID++))
-
-test $TEST_ID "4 2 1 3" 2
-((TEST_ID++))
-
-test $TEST_ID "4 2 3 1" 4
-((TEST_ID++))
-
-test $TEST_ID "4 3 1 2" 3
-((TEST_ID++))
-
-test $TEST_ID "4 3 2 1" 4
-((TEST_ID++))
+while read line; do
+	IFS=" " read -ra argv <<< "$line"
+	argc=${#argv[@]}
+	argc=$((argc - 1))
+	if (( LAST_ARGC != argc )); then
+		printf $BOLD 
+		printf "Test with $argc elements$RESET_COLOR\n"
+		LAST_ARGC=$((argc))
+		TEST_ID=1
+	fi
+	sliced=${argv[@]:0:argc}
+	test $TEST_ID "$sliced" ${argv[argc]}
+	((TEST_ID++))
+done < tester_data
 
 if ((SUCCESS_COUNT<MAX_SUCCESS_COUNT)); then
 	printf "$RED_COLOR$SUCCESS_COUNT/$MAX_SUCCESS_COUNT$RESET_COLOR tests succedded\n"
 else
 	printf "$GREEN_COLOR$SUCCESS_COUNT/$MAX_SUCCESS_COUNT$RESET_COLOR tests succedded\n"
 fi
+
+# printf $BOLD 
+# printf "Test with three elements$RESET_COLOR\n"
+# TEST_ID=1
+# test $TEST_ID "1 2 3" 0
+# ((TEST_ID++))
+# test $TEST_ID "1 3 2" 2
+# ((TEST_ID++))
+# test $TEST_ID "2 1 3" 1
+# ((TEST_ID++))
+# test $TEST_ID "2 3 1" 1
+# ((TEST_ID++))
+# test $TEST_ID "3 2 1" 2
+# ((TEST_ID++))
+# test $TEST_ID "3 1 2" 2
+# ((TEST_ID++))
+
+# printf $BOLD 
+# printf "Test with four elements$RESET_COLOR\n"
+# TEST_ID=1
+# test $TEST_ID "1 2 3 4" 0
+# ((TEST_ID++))
+
+# test $TEST_ID "1 2 4 3" 4
+# ((TEST_ID++))
+
+# test $TEST_ID "1 3 2 4" 3
+# ((TEST_ID++))
+
+# test $TEST_ID "1 3 4 2" 2
+# ((TEST_ID++))
+
+# test $TEST_ID "1 4 2 3" 3
+# ((TEST_ID++))
+
+# test $TEST_ID "1 4 3 2" 4
+# ((TEST_ID++))
+
+# test $TEST_ID "2 1 3 4" 1
+# ((TEST_ID++))
+
+# test $TEST_ID "2 1 4 3" 5
+# ((TEST_ID++))
+
+# test $TEST_ID "2 3 1 4" 4
+# ((TEST_ID++))
+
+# test $TEST_ID "2 3 4 1" 1
+# ((TEST_ID++))
+
+# test $TEST_ID "2 4 1 3" 3
+# ((TEST_ID++))
+
+# test $TEST_ID "2 4 3 1" 4
+# ((TEST_ID++))
+
+# test $TEST_ID "3 1 2 4" 4
+# ((TEST_ID++))
+
+# test $TEST_ID "3 1 4 2" 3
+# ((TEST_ID++))
+
+# test $TEST_ID "3 2 1 4" 5
+# ((TEST_ID++))
+
+# test $TEST_ID "3 2 4 1" 2
+# ((TEST_ID++))
+
+# test $TEST_ID "3 4 1 2" 2
+# ((TEST_ID++))
+
+# test $TEST_ID "3 4 2 1" 3
+# ((TEST_ID++))
+
+# test $TEST_ID "4 1 2 3" 1
+# ((TEST_ID++))
+
+# test $TEST_ID "4 1 3 2" 5
+# ((TEST_ID++))
+
+# test $TEST_ID "4 2 1 3" 2
+# ((TEST_ID++))
+
+# test $TEST_ID "4 2 3 1" 4
+# ((TEST_ID++))
+
+# test $TEST_ID "4 3 1 2" 3
+# ((TEST_ID++))
+
+# test $TEST_ID "4 3 2 1" 4
+# ((TEST_ID++))
+
+# if ((SUCCESS_COUNT<MAX_SUCCESS_COUNT)); then
+# 	printf "$RED_COLOR$SUCCESS_COUNT/$MAX_SUCCESS_COUNT$RESET_COLOR tests succedded\n"
+# else
+# 	printf "$GREEN_COLOR$SUCCESS_COUNT/$MAX_SUCCESS_COUNT$RESET_COLOR tests succedded\n"
+# fi
